@@ -40,7 +40,7 @@ jobs:
       - name: Build EXE with PyInstaller
         shell: bash
         run: |
-          pyinstaller MyApp.spec --noconfirm
+          pyinstaller app.py --noconfirm --onefile
 
       - name: Sign EXE (tag pushes only)
         if: startsWith(github.ref, 'refs/tags/')
