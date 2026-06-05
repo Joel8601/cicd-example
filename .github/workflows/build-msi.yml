@@ -48,7 +48,7 @@ jobs:
       - name: Build EXE with PyInstaller
         shell: bash
         run: |
-          pyinstaller MyApp.spec --noconfirm
+          pyinstaller app.spec --noconfirm
 
       - name: Inject version into installer.wxs
         shell: bash
