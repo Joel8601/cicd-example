@@ -14,14 +14,14 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLDIR" Name="MyApp">
-          <Component Id="MainExecutable" Guid="YOUR-MAIN-EXECUTABLE-GUID">
-            <File Id="AppExe" Source="dist\MyApp\MyApp.exe" KeyPath="yes" />
+          <Component Id="MainExecutable" Guid="*">
+            <File Id="AppExe" Source="dist\app\MyApp.exe" KeyPath="yes" />
           </Component>
         </Directory>
       </Directory>
       <Directory Id="ProgramMenuFolder">
         <Directory Id="StartMenuFolder" Name="MyApp">
-          <Component Id="StartMenuShortcut" Guid="YOUR-STARTMENU-SHORTCUT-GUID">
+          <Component Id="StartMenuShortcut" Guid="*">
             <Shortcut Id="StartMenuShortcut" Name="MyApp" Description="Launch MyApp" Target="[INSTALLDIR]MyApp.exe" WorkingDirectory="INSTALLDIR" Advertise="no" />
             <!-- RemoveFolder on a custom StartMenu subfolder is correct and required
                  so the subfolder is cleaned up on uninstall -->
@@ -34,7 +34,7 @@
         <!-- Note: RemoveFolder is intentionally absent here.
              DesktopFolder is a standard system folder — never remove it on uninstall.
              Including RemoveFolder on DesktopFolder causes ICE64 validation errors. -->
-        <Component Id="DesktopShortcut" Guid="YOUR-DESKTOP-SHORTCUT-GUID">
+        <Component Id="DesktopShortcut" Guid="*">
           <Shortcut Id="DesktopShortcut" Name="MyApp" Description="Launch MyApp from Desktop" Target="[INSTALLDIR]MyApp.exe" WorkingDirectory="INSTALLDIR" Advertise="no" Icon="AppIcon" />
           <RegistryValue Root="HKCU" Key="Software\MyApp" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
         </Component>
