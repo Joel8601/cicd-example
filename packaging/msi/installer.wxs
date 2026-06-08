@@ -22,7 +22,7 @@
       <Directory Id="ProgramMenuFolder">
         <Directory Id="StartMenuFolder" Name="MyApp">
           <Component Id="StartMenuShortcut" Guid="*">
-            <Shortcut Id="StartMenuShortcut" Name="MyApp" Description="Launch MyApp" Target="[INSTALLDIR]MyApp.exe" WorkingDirectory="INSTALLDIR" Advertise="no" />
+            <Shortcut Id="StartMenuShortcut" Name="MyApp" Description="Launch MyApp" Target="[INSTALLDIR]app.exe" WorkingDirectory="INSTALLDIR" Advertise="no" />
             <!-- RemoveFolder on a custom StartMenu subfolder is correct and required
                  so the subfolder is cleaned up on uninstall -->
             <RemoveFolder Id="RemoveStartMenuFolder" On="uninstall" />

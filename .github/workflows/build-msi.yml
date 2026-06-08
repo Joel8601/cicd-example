@@ -74,11 +74,12 @@ jobs:
           candle packaging/msi/installer.wxs packaging/msi/HarvestedFiles.wxs
 
       - name: Link object files into MSI with light
-        shell: bash
-        run: |
-          light installer.wixobj HarvestedFiles.wixobj \
-            -o MyApp.msi \
-            -ext WixUIExtension
+  	shell: bash
+  	run: |
+    	  light installer.wixobj HarvestedFiles.wixobj \
+      	     -b dist/app/_internal \
+             -o MyApp.msi \
+             -ext WixUIExtension
 
       - name: Sign MSI (tag pushes only)
         if: startsWith(github.ref, 'refs/tags/')
