@@ -35,7 +35,7 @@
              DesktopFolder is a standard system folder — never remove it on uninstall.
              Including RemoveFolder on DesktopFolder causes ICE64 validation errors. -->
         <Component Id="DesktopShortcut" Guid="*">
-          <Shortcut Id="DesktopShortcut" Name="MyApp" Description="Launch MyApp from Desktop" Target="[INSTALLDIR]MyApp.exe" WorkingDirectory="INSTALLDIR" Advertise="no" Icon="AppIcon" />
+          <Shortcut Id="DesktopShortcut" Name="MyApp" Description="Launch MyApp from Desktop" Target="[INSTALLDIR]app.exe" WorkingDirectory="INSTALLDIR" Advertise="no" Icon="AppIcon" />
           <RegistryValue Root="HKCU" Key="Software\MyApp" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
         </Component>
       </Directory>
