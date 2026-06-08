@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="MyApp" Language="1033" Version="1.0.0" Manufacturer="YourCompany" UpgradeCode="YOUR-UPGRADE-CODE-GUID">
+  <Product Id="*" Name="MyApp" Language="1033" Version="1.0.1" Manufacturer="Zendalona" UpgradeCode="cb3aaee2-4a23-4a48-a2a7-aab0a51a4aba">
     <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
     <MediaTemplate />
 
