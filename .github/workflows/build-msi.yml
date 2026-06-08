@@ -59,7 +59,7 @@ jobs:
       - name: Harvest dependency files with heat
         shell: bash
         run: |
-          heat dir dist/MyApp/_internal \
+          heat dir dist/app/_internal \
             -cg InternalComponentGroup \
             -dr INSTALLDIR \
             -gg -g1 -sfrag -sreg -srd \
