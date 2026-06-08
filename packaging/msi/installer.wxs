@@ -15,7 +15,7 @@
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLDIR" Name="MyApp">
           <Component Id="MainExecutable" Guid="*">
-            <File Id="AppExe" Source="dist\app\MyApp.exe" KeyPath="yes" />
+            <File Id="AppExe" Source="dist\app\app.exe" KeyPath="yes" />
           </Component>
         </Directory>
       </Directory>
