@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="MyApp" Language="1033" Version="1.0.0" Manufacturer="YourCompany" UpgradeCode="YOUR-UPGRADE-CODE-GUID">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+    <MediaTemplate />
+
+    <!-- MajorUpgrade handles uninstalling old versions automatically on upgrade.
+         Without this element, installing a new version leaves the old one behind. -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of MyApp is already installed." />
+
+    <Icon Id="AppIcon" SourceFile="packaging\\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLDIR" Name="MyApp">
+          <Component Id="MainExecutable" Guid="YOUR-MAIN-EXECUTABLE-GUID">
+            <File Id="AppExe" Source="dist\MyApp\MyApp.exe" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="StartMenuFolder" Name="MyApp">
+          <Component Id="StartMenuShortcut" Guid="YOUR-STARTMENU-SHORTCUT-GUID">
+            <Shortcut Id="StartMenuShortcut" Name="MyApp" Description="Launch MyApp" Target="[INSTALLDIR]MyApp.exe" WorkingDirectory="INSTALLDIR" Advertise="no" />
+            <!-- RemoveFolder on a custom StartMenu subfolder is correct and required
+                 so the subfolder is cleaned up on uninstall -->
+            <RemoveFolder Id="RemoveStartMenuFolder" On="uninstall" />
+            <RegistryValue Root="HKCU" Key="Software\MyApp" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+      <Directory Id="DesktopFolder">
+        <!-- Note: RemoveFolder is intentionally absent here.
+             DesktopFolder is a standard system folder — never remove it on uninstall.
+             Including RemoveFolder on DesktopFolder causes ICE64 validation errors. -->
+        <Component Id="DesktopShortcut" Guid="YOUR-DESKTOP-SHORTCUT-GUID">
+          <Shortcut Id="DesktopShortcut" Name="MyApp" Description="Launch MyApp from Desktop" Target="[INSTALLDIR]MyApp.exe" WorkingDirectory="INSTALLDIR" Advertise="no" Icon="AppIcon" />
+          <RegistryValue Root="HKCU" Key="Software\MyApp" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+      </Directory>
+    </Directory>
+
+    <Feature Id="MainFeature" Title="MyApp" Level="1">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+      <ComponentGroupRef Id="InternalComponentGroup" />
+    </Feature>
+
+    <UI>
+      <UIRef Id="WixUI_Minimal" />
+      <UIRef Id="WixUI_ErrorProgressText" />
+      <Property Id="WIXUI_WELCOMEFINISHPAGE" Value="1" />
+    </UI>
+  </Product>
+</Wix>
