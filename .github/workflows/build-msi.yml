@@ -51,10 +51,13 @@ jobs:
           pyinstaller app.spec --noconfirm
 
       - name: Inject version into installer.wxs
-        shell: bash
+        shell: pwsh
         run: |
-          VERSION="${{ steps.version.outputs.VERSION }}"
-          sed -i "s/Version=\"[0-9][^\"]*\"/Version=\"${VERSION}\"/" packaging/msi/installer.wxs
+          $version = "${{ steps.version.outputs.VERSION }}"
+          $content = Get-Content "packaging/msi/installer.wxs" -Raw
+          # Safely swap out the unique token for the real version string
+          $content = $content.Replace('Version="DEPLOY_VERSION_TOKEN"', "Version=`"$version`"")
+          Set-Content "packaging/msi/installer.wxs" $content
 
       - name: Harvest dependency files with heat
         shell: bash
