@@ -51,10 +51,10 @@ jobs:
           pyinstaller app.spec --noconfirm
 
       - name: Inject version into installer.wxs
-        shell: bash
-        run: |
-          VERSION="${{ steps.version.outputs.VERSION }}"
-          sed -i "s/Version=\"[0-9][^\"]*\"/Version=\"${VERSION}\"/" packaging/msi/installer.wxs
+  	shell: bash
+  	run: |
+ 	   VERSION="${{ steps.version.outputs.VERSION }}"
+  	   sed -i '/<Product / s/Version="[^"]*"/Version="'"${VERSION}"'"/' packaging/msi/installer.wxs
 
       - name: Harvest dependency files with heat
         shell: bash
