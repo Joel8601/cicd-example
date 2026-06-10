@@ -4,7 +4,6 @@ name: Build Windows MSI
 #  ADAPT: Replace every occurrence of the following placeholders:     #
 #    MyApp      → your app name  (e.g. MyCoolApp)                     #
 #    app.spec   → your PyInstaller spec file name                     #
-#    MyApp.exe  → your built executable name                         #
 # ------------------------------------------------------------------ #
 
 on:
@@ -62,16 +61,17 @@ jobs:
 
       # ── 5. Build EXE ─────────────────────────────────────────────
       #  ADAPT: change app.spec to your spec file name.
+      #  Output: dist/app/app.exe + dist/app/_internal/ (PyInstaller >= 6)
+      #                          or dist/app/           (PyInstaller < 6)
       - name: Build EXE with PyInstaller
         shell: bash
         run: |
           pyinstaller app.spec --noconfirm
 
       # ── 6. Detect PyInstaller output layout ──────────────────────
-      #  PyInstaller ≥ 6.0  →  dist/app/_internal   (new layout)
-      #  PyInstaller < 6.0  →  dist/app              (old layout)
-      #  ADAPT: replace "app" with your app name if it differs from
-      #  the name= value in your .spec file.
+      #  PyInstaller >= 6.0  →  dependencies in dist/app/_internal
+      #  PyInstaller <  6.0  →  dependencies flat in dist/app
+      #  ADAPT: replace "app" in both paths if your spec name= differs.
       - name: Detect PyInstaller output layout
         id: layout
         shell: bash
@@ -85,11 +85,10 @@ jobs:
           fi
 
       # ── 7. Inject version into installer.wxs ─────────────────────
-      #  Your installer.wxs must contain the literal token:
+      #  installer.wxs must contain the literal token:
       #    Version="DEPLOY_VERSION_TOKEN"
       #  This step replaces it with the real version at build time.
-      #  Using a named token (not a regex) makes the replacement safe
-      #  and explicit — it fails loudly if the token is missing.
+      #  Fails loudly if the token is missing — prevents silent bad builds.
       - name: Inject version into installer.wxs
         shell: pwsh
         run: |
@@ -105,22 +104,23 @@ jobs:
           Write-Host "Injected version $version into $file"
 
       # ── 8. Harvest dependency files ──────────────────────────────
-      #  heat auto-generates HarvestedFiles.wxs by scanning the
-      #  PyInstaller output folder. It is regenerated on every CI run
-      #  so you do NOT commit HarvestedFiles.wxs to your repository.
+      #  heat scans the _internal (or flat) folder and auto-generates
+      #  HarvestedFiles.wxs. This file is NOT committed to the repo —
+      #  it is regenerated fresh on every CI run.
       #
-      #  Flags explained:
-      #    -cg  InternalComponentGroup   component group ID referenced
-      #                                  in installer.wxs Feature block
-      #    -dr  INSTALLDIR               directory ref from installer.wxs
-      #    -gg                           generate GUIDs for each component
-      #    -g1                           generate one component per file
-      #    -sfrag                        suppress Fragment element wrapper
-      #    -sreg                         suppress registry harvesting
-      #    -srd                          suppress root directory component
-      #    -var var.SourceDir            emit $(var.SourceDir)\file paths
-      #                                  so candle can resolve them via
-      #                                  the -dSourceDir switch below
+      #  -dr INSTALLDIR places all harvested deps flat into the install
+      #  directory alongside app.exe, matching the manual build process.
+      #
+      #  Flags:
+      #    -cg InternalComponentGroup  component group ref in installer.wxs
+      #    -dr INSTALLDIR              install destination directory
+      #    -gg                         auto-generate GUIDs per component
+      #    -g1                         one component per file
+      #    -sfrag                      suppress Fragment wrapper
+      #    -sreg                       suppress registry harvesting
+      #    -srd                        suppress root directory component
+      #    -var var.SourceDir          use $(var.SourceDir)\file in paths
+      #                                resolved by -dSourceDir in candle
       - name: Harvest dependency files with heat
         shell: bash
         run: |
@@ -132,8 +132,9 @@ jobs:
             -out packaging/msi/HarvestedFiles.wxs
 
       # ── 9. Compile WiX sources ───────────────────────────────────
-      #  -dSourceDir must point to the same folder passed to heat.
-      #  candle turns both .wxs files into .wixobj object files.
+      #  -arch x64   marks all components as 64-bit (fixes ICE80 error)
+      #  -dSourceDir resolves the $(var.SourceDir) paths emitted by heat
+      #              and must point to the same folder passed to heat
       - name: Compile WiX source files with candle
         shell: bash
         run: |
@@ -143,7 +144,7 @@ jobs:
             packaging/msi/installer.wxs \
             packaging/msi/HarvestedFiles.wxs
 
-      # ── 10. Link into MSI ─────────────────────────────────────────
+      # ── 10. Link into MSI ────────────────────────────────────────
       #  light links both .wixobj files into the final .msi.
       #  WixUIExtension provides the built-in installer UI dialogs.
       #  ADAPT: change MyApp.msi to your app name.
@@ -155,8 +156,8 @@ jobs:
             -ext WixUIExtension
 
       # ── 11. Sign MSI (tag pushes only) ───────────────────────────
-      #  Signing only runs when a version tag is pushed (v*.*.*).
-      #  Required secrets (set in repo Settings → Secrets):
+      #  Runs only when a version tag is pushed (v*.*.*).
+      #  Required secrets (repo Settings → Secrets → Actions):
       #    WINDOWS_CERTIFICATE_BASE64   base64-encoded .pfx file
       #    WINDOWS_CERTIFICATE_PASSWORD password for the .pfx
       #  ADAPT: change MyApp.msi to your app name.
