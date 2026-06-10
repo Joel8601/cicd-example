@@ -108,12 +108,12 @@ jobs:
       #  HarvestedFiles.wxs. This file is NOT committed to the repo —
       #  it is regenerated fresh on every CI run.
       #
-      #  -dr INSTALLDIR places all harvested deps flat into the install
+      #  -dr INTERNALDIRREF places all harvested deps flat into the install
       #  directory alongside app.exe, matching the manual build process.
       #
       #  Flags:
       #    -cg InternalComponentGroup  component group ref in installer.wxs
-      #    -dr INSTALLDIR              install destination directory
+      #    -dr INTERNALDIRREF              install destination directory
       #    -gg                         auto-generate GUIDs per component
       #    -g1                         one component per file
       #    -sfrag                      suppress Fragment wrapper
@@ -126,7 +126,7 @@ jobs:
         run: |
           heat dir "${{ steps.layout.outputs.INTERNAL_DIR }}" \
             -cg InternalComponentGroup \
-            -dr INSTALLDIR \
+            -dr INTERNALDIRREF \
             -gg -g1 -sfrag -sreg -srd \
             -var var.SourceDir \
             -out packaging/msi/HarvestedFiles.wxs
