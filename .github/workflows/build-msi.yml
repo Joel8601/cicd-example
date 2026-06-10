@@ -29,9 +29,7 @@ jobs:
       - name: Install WiX Toolset v3
         shell: bash
         run: |
-          # Chocolatey is pre-installed on GitHub-hosted Windows runners
           choco install wixtoolset -y
-          # Locate the WiX bin directory dynamically in case the patch version varies
           WIX_BIN=$(ls -d "/c/Program Files (x86)/WiX Toolset"*/bin 2>/dev/null | head -1)
           echo "$WIX_BIN" >> "$GITHUB_PATH"
 
@@ -45,20 +43,41 @@ jobs:
             echo "VERSION=1.0.0" >> "$GITHUB_OUTPUT"
           fi
 
+      # ---------------------------------------------------------------
+      # ADAPT: Change "app.spec" to your actual PyInstaller spec file.
+      #        The output folder name must match what is set in the spec
+      #        (e.g. name="app" → dist/app/).
+      # ---------------------------------------------------------------
       - name: Build EXE with PyInstaller
         shell: bash
         run: |
           pyinstaller app.spec --noconfirm
 
+      # ---------------------------------------------------------------
+      # Uses a unique token (DEPLOY_VERSION_TOKEN) instead of a regex
+      # so the replacement is safe and explicit.
+      # Your installer.wxs must contain exactly: Version="DEPLOY_VERSION_TOKEN"
+      # ---------------------------------------------------------------
       - name: Inject version into installer.wxs
         shell: pwsh
         run: |
           $version = "${{ steps.version.outputs.VERSION }}"
           $content = Get-Content "packaging/msi/installer.wxs" -Raw
-          # Safely swap out the unique token for the real version string
           $content = $content.Replace('Version="DEPLOY_VERSION_TOKEN"', "Version=`"$version`"")
           Set-Content "packaging/msi/installer.wxs" $content
+          if ($content -notmatch [regex]::Escape("Version=`"$version`"")) {
+            Write-Error "Version injection failed — token not found in installer.wxs"
+            exit 1
+          }
 
+      # ---------------------------------------------------------------
+      # ADAPT: Change "dist/app/_internal" to match your PyInstaller
+      #        output folder if your app name differs.
+      #
+      # -var var.SourceDir tells heat to emit $(var.SourceDir)\filename
+      # instead of SourceDir\filename, so candle can resolve the paths
+      # correctly via -dSourceDir.
+      # ---------------------------------------------------------------
       - name: Harvest dependency files with heat
         shell: bash
         run: |
@@ -66,18 +85,24 @@ jobs:
             -cg InternalComponentGroup \
             -dr INSTALLDIR \
             -gg -g1 -sfrag -sreg -srd \
+            -var var.SourceDir \
             -out packaging/msi/HarvestedFiles.wxs
 
+      # ---------------------------------------------------------------
+      # -dSourceDir must point to the same folder passed to heat above.
+      # ---------------------------------------------------------------
       - name: Compile WiX source files with candle
         shell: bash
         run: |
-          candle packaging/msi/installer.wxs packaging/msi/HarvestedFiles.wxs
+          candle \
+            -dSourceDir="dist/app/_internal" \
+            packaging/msi/installer.wxs \
+            packaging/msi/HarvestedFiles.wxs
 
       - name: Link object files into MSI with light
         shell: bash
         run: |
           light installer.wixobj HarvestedFiles.wixobj \
-            -b dist/app/_internal \
             -o MyApp.msi \
             -ext WixUIExtension
 
